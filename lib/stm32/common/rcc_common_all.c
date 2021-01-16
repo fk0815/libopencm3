@@ -224,9 +224,11 @@ void rcc_set_mco(uint32_t mcosrc)
 void rcc_osc_bypass_enable(enum rcc_osc osc)
 {
 	switch (osc) {
+#ifdef RCC_CR_HSEBYP
 	case RCC_HSE:
 		RCC_CR |= RCC_CR_HSEBYP;
 		break;
+#endif
 	case RCC_LSE:
 #ifdef RCC_CSR_LSEBYP
 		RCC_CSR |= RCC_CSR_LSEBYP;
@@ -254,9 +256,11 @@ void rcc_osc_bypass_enable(enum rcc_osc osc)
 void rcc_osc_bypass_disable(enum rcc_osc osc)
 {
 	switch (osc) {
+#ifdef RCC_CR_HSEBYP
 	case RCC_HSE:
 		RCC_CR &= ~RCC_CR_HSEBYP;
 		break;
+#endif
 	case RCC_LSE:
 #ifdef RCC_CSR_LSEBYP
 		RCC_CSR &= ~RCC_CSR_LSEBYP;

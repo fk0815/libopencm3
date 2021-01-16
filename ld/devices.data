@@ -257,6 +257,11 @@ stm32g4?[34]?b* stm32g4ccm ROM=128K RAM=96K CCM=32K
 stm32g4?[34]?c* stm32g4ccm ROM=256K RAM=96K CCM=32K
 stm32g4?[34]?e* stm32g4ccm ROM=512K RAM=96K CCM=32K
 
+stm32wl55?c* stm32wl ROM=256K RAM=32K RAM2=32K
+stm32wle[45]?c* stm32wl ROM=256K RAM=32K RAM2=32K
+stm32wle[45]?b* stm32wl ROM=128K RAM=16K RAM2=32K
+stm32wle[45]?8* stm32wl ROM=64K RAM2=20K
+
 ################################################################################
 # the SAM3 chips
 
@@ -531,6 +536,8 @@ stm32g0 END ROM_OFF=0x08000000 RAM_OFF=0x20000000 CPU=cortex-m0plus FPU=soft
 stm32g4 END ROM_OFF=0x08000000 RAM_OFF=0x20000000 CPU=cortex-m4 FPU=hard-fpv4-sp-d16
 stm32w END ROM_OFF=0x08000000 RAM_OFF=0x20000000 CPU=cortex-m3 FPU=soft
 stm32t END ROM_OFF=0x08000000 RAM_OFF=0x20000000 CPU=cortex-m3 FPU=soft
+stm32wl END ROM_OFF=0x08000000 RAM_OFF=0x20000000 RAM2_OFF=0x10000000 RAM3_OFF=0x20040000 CPU=cortex-m4 FPU=soft
+# FPU not working stm32wl END ROM_OFF=0x08000000 RAM_OFF=0x20000000 RAM2_OFF=0x10000000 RAM3_OFF=0x20040000 CPU=cortex-m4 FPU=hard-fpv4-sp-d16
 
 ################################################################################
 # the SAM3 families
