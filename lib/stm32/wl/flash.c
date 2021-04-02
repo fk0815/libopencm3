@@ -143,17 +143,18 @@ void flash_program(uint32_t address, uint8_t *data, uint32_t len)
 }
 
 /** @brief Erase a page of FLASH
- * @param[in] page (0 - 255 for bank 1, 256-511 for bank 2)
+ * @param[in] page (0 - 127)
  */
 void flash_erase_page(uint32_t page)
 {
 	flash_wait_for_last_operation();
 
-	/* page and bank are contiguous bits */
-	FLASH_CR &= ~((FLASH_CR_PNB_MASK << FLASH_CR_PNB_SHIFT) | FLASH_CR_BKER);
-	if (page > 255)	{
-		FLASH_CR |= FLASH_CR_BKER;
+	if (page > 127)	{
+		return;
 	}
+
+	/* page and bank are contiguous bits */
+	FLASH_CR &= ~(FLASH_CR_PNB_MASK << FLASH_CR_PNB_SHIFT);
 	FLASH_CR |= page << FLASH_CR_PNB_SHIFT;
 	FLASH_CR |= FLASH_CR_PER;
 	FLASH_CR |= FLASH_CR_START;
@@ -170,11 +171,11 @@ void flash_erase_all_pages(void)
 {
 	flash_wait_for_last_operation();
 
-	FLASH_CR |= FLASH_CR_MER1 | FLASH_CR_MER2;
+	FLASH_CR |= FLASH_CR_MER;
 	FLASH_CR |= FLASH_CR_START;
 
 	flash_wait_for_last_operation();
-	FLASH_CR &= ~FLASH_CR_MER1 & ~FLASH_CR_MER2;
+	FLASH_CR &= ~FLASH_CR_MER;
 }
 
 /** @brief Program the Option Bytes
