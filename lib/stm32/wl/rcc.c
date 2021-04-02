@@ -32,6 +32,7 @@
 /**@{*/
 #include <libopencm3/cm3/assert.h>
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/flash.h>
 
 /* Set the default clock frequencies after reset. */
 uint32_t rcc_ahb_frequency = 4000000;
@@ -479,4 +480,173 @@ uint32_t rcc_get_spi_clk_freq(uint32_t spi) {
 		return rcc_apb1_frequency;
 	}
 }
+
+/**
+ * @brief Set the peripheral clock source
+ * @param periph peripheral of choice, eg XXX_BASE
+ * @param sel periphral clock source
+ */
+void rcc_set_peripheral_clk_sel(uint32_t periph, uint32_t sel)
+{
+	uint8_t shift;
+	uint32_t mask;
+
+	switch (periph) {
+		case ADC_BASE:
+			shift = RCC_CCIPR_ADCSEL_SHIFT;
+			mask = RCC_CCIPR_ADCSEL_MASK;
+			break;
+		case RNG_BASE:
+			shift = RCC_CCIPR_RNGSEL_SHIFT;
+			mask = RCC_CCIPR_RNGSEL_MASK;
+			break;
+		case LPTIM1_BASE:
+			shift = RCC_CCIPR_LPTIM1SEL_SHIFT;
+			mask = RCC_CCIPR_LPTIMxSEL_MASK;
+			break;
+		case LPTIM2_BASE:
+			shift = RCC_CCIPR_LPTIM2SEL_SHIFT;
+			mask = RCC_CCIPR_LPTIMxSEL_MASK;
+			break;
+		case I2C3_BASE:
+			shift = RCC_CCIPR_I2C3SEL_SHIFT;
+			mask = RCC_CCIPR_I2CxSEL_MASK;
+			break;
+		case I2C2_BASE:
+			shift = RCC_CCIPR_I2C2SEL_SHIFT;
+			mask = RCC_CCIPR_I2CxSEL_MASK;
+			break;
+		case I2C1_BASE:
+			shift = RCC_CCIPR_I2C1SEL_SHIFT;
+			mask = RCC_CCIPR_I2CxSEL_MASK;
+			break;
+		case LPUART1_BASE:
+			shift = RCC_CCIPR_LPUART1SEL_SHIFT;
+			mask = RCC_CCIPR_LPUART1SEL_MASK;
+			break;
+		case SPI2S2_BASE:
+			shift = RCC_CCIPR_SPI2S2SEL_SHIFT;
+			mask = RCC_CCIPR_SPI2S2SEL_MASK;
+			break;
+		case USART2_BASE:
+			shift = RCC_CCIPR_USART2SEL_SHIFT;
+			mask = RCC_CCIPR_USARTxSEL_MASK;
+			break;
+		case USART1_BASE:
+			shift = RCC_CCIPR_USART1SEL_SHIFT;
+			mask = RCC_CCIPR_USARTxSEL_MASK;
+			break;
+		default:
+			cm3_assert_not_reached();
+			return;
+	}
+
+	uint32_t reg32 = RCC_CCIPR & ~(mask << shift);
+	RCC_CCIPR = reg32 | (sel << shift);
+}
+
+/*---------------------------------------------------------------------------*/
+/*
+ * These functions are setting up the whole clock system for the most common
+ * input clock and output clock configurations.
+ */
+/*---------------------------------------------------------------------------*/
+/** @brief RCC Set System Clock PLL at 48MHz from HSI
+ *
+ */
+
+void rcc_clock_setup_in_hsi_out_48mhz(void) {
+
+	rcc_osc_on(RCC_HSI16);
+	rcc_wait_for_osc_ready(RCC_HSI16);
+	rcc_set_sysclk_source(RCC_CFGR_SW_HSI16);
+	rcc_wait_for_sysclk_status(RCC_HSI16);
+
+	flash_prefetch_enable();
+	flash_set_ws(FLASH_ACR_LATENCY_1WS);
+	flash_dcache_enable();
+	flash_icache_enable();
+
+	rcc_osc_off(RCC_PLL);
+	/* 16MHz / 4 = > 4MHz * 48 = 192MHz VCO => /4 => 48MHz main pll  */
+	rcc_set_main_pll(RCC_PLLCFGR_PLLSRC_HSI16, 4, 48, 0, 0, 4);
+	rcc_osc_on(RCC_PLL);
+	rcc_wait_for_osc_ready(RCC_PLL);
+
+	rcc_set_sysclk_source(RCC_CFGR_SW_PLLR);
+	rcc_wait_for_sysclk_status(RCC_PLL);
+
+	rcc_osc_off(RCC_MSI);
+
+	rcc_ahb_frequency = 48e6;
+	rcc_apb1_frequency = 48e6;
+	rcc_apb2_frequency = 48e6;
+}
+
+/*---------------------------------------------------------------------------*/
+/** @brief RCC Set System Clock PLL at 24MHz from HSI
+ *
+ */
+
+void rcc_clock_setup_in_hsi_out_24mhz(void) {
+
+	rcc_osc_on(RCC_HSI16);
+	rcc_wait_for_osc_ready(RCC_HSI16);
+	rcc_set_sysclk_source(RCC_CFGR_SW_HSI16);
+	rcc_wait_for_sysclk_status(RCC_HSI16);
+
+	flash_prefetch_enable();
+	flash_set_ws(FLASH_ACR_LATENCY_0WS);
+	flash_dcache_enable();
+	flash_icache_enable();
+
+	rcc_osc_off(RCC_PLL);
+	/* 16MHz / 4 = > 4MHz * 48 = 192MHz VCO => /8 => 24MHz main pll  */
+	rcc_set_main_pll(RCC_PLLCFGR_PLLSRC_HSI16, 4, 48, 0, 0, 8);
+	rcc_osc_on(RCC_PLL);
+	rcc_wait_for_osc_ready(RCC_PLL);
+
+	rcc_set_sysclk_source(RCC_CFGR_SW_PLLR);
+	rcc_wait_for_sysclk_status(RCC_PLL);
+
+	rcc_osc_off(RCC_MSI);
+
+	rcc_ahb_frequency = 24e6;
+	rcc_apb1_frequency = 24e6;
+	rcc_apb2_frequency = 24e6;
+}
+
+/*---------------------------------------------------------------------------*/
+/** @brief RCC Set System Clock PLL at 12MHz from HSI
+ *
+ */
+
+void rcc_clock_setup_in_hsi_out_12mhz(void) {
+
+	rcc_osc_on(RCC_HSI16);
+	rcc_wait_for_osc_ready(RCC_HSI16);
+	rcc_set_sysclk_source(RCC_CFGR_SW_HSI16);
+	rcc_wait_for_sysclk_status(RCC_HSI16);
+
+	flash_prefetch_enable();
+	flash_set_ws(FLASH_ACR_LATENCY_0WS);
+	flash_dcache_enable();
+	flash_icache_enable();
+
+	rcc_osc_off(RCC_PLL);
+	/* 16MHz / 4 = > 4MHz * 24 = 96MHz VCO => /8 => 12MHz main pll  */
+	rcc_set_main_pll(RCC_PLLCFGR_PLLSRC_HSI16, 4, 24, 0, 0, 8);
+	rcc_osc_on(RCC_PLL);
+	rcc_wait_for_osc_ready(RCC_PLL);
+
+	rcc_set_sysclk_source(RCC_CFGR_SW_PLLR);
+	rcc_wait_for_sysclk_status(RCC_PLL);
+
+	rcc_osc_off(RCC_MSI);
+
+	rcc_ahb_frequency = 12e6;
+	rcc_apb1_frequency = 12e6;
+	rcc_apb2_frequency = 12e6;
+}
+
 /**@}*/
