@@ -24,6 +24,8 @@
 #       include <libopencm3/stm32/f0/comparator.h>
 #elif defined(STM32F3)
 #       include <libopencm3/stm32/f3/comparator.h>
+#elif defined(STM32WL)
+#       include <libopencm3/stm32/wl/comparator.h>
 #else
 #       error "stm32 family not defined."
 #endif
